@@ -1,6 +1,10 @@
 import ContactTable from "@/components/contact-table"
 import Search from "@/components/search"
 import { CreateButton } from "@/components/buttons"
+import Pagination from "@/components/pagination";
+import { getContactsPages } from "@/lib/data";
+import { Suspense } from "react";
+import { TableSkeleton } from "@/components/skeleton";
 
 type Props = {
     searchParams: Promise<{ query?: string; page?: string }>;
@@ -11,6 +15,7 @@ const Contacts = async ({ searchParams }: Props) => {
     const params = await searchParams;
     const query = params?.query || "";
     const currentPage = Number(params?.page) || 1;
+    const totalPages = await getContactsPages(query);
 
     return (
         <div className="max-w-screen-md mx-auto mt-5">
@@ -18,7 +23,13 @@ const Contacts = async ({ searchParams }: Props) => {
                 <Search />
                 <CreateButton />
             </div>
-            <ContactTable query={query} currentPage={currentPage} />
+            <Suspense key={query + currentPage} fallback={<TableSkeleton/>}>
+                <ContactTable query={query} currentPage={currentPage} />
+            </Suspense>
+
+            <div className="flex justify-center mt-4">
+                <Pagination totalPages={totalPages} />
+            </div>
         </div>
     )
 }
